@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "name": "proposal-concurrency-control",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/michaelficarra/proposal-concurrency-control.git"
+  },
+  "author": "Michael Ficarra",
+  "bugs": {
+    "url": "https://github.com/michaelficarra/proposal-concurrency-control/issues"
+  },
+  "homepage": "https://github.com/michaelficarra/proposal-concurrency-control#readme",
+  "devDependencies": {
+    "typescript": "5.5.3"
+  },
+  "dependencies": {
+  }
+}

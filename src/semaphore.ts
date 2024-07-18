@@ -1,25 +1,25 @@
 import { Governor } from "./governor.js";
 
 export class Semaphore extends Governor {
-  #limit: number;
+  #capacity: number;
   #acquired: number = 0;
   #wait: PromiseWithResolvers<void> | null = null;
   #idleListeners: (() => void)[] = [];
 
-  constructor(limit: number) {
-    if ((limit >>> 0) !== limit) {
-      throw new TypeError("Limit must be an integer");
+  constructor(capacity: number) {
+    if ((capacity >>> 0) !== capacity) {
+      throw new TypeError("capacity must be an integer");
     }
-    if (limit < 0) {
-      throw new RangeError("Limit must be non-negative");
+    if (capacity < 0) {
+      throw new RangeError("capacity must be non-negative");
     }
     super();
 
-    this.#limit = limit;
+    this.#capacity = capacity;
   }
 
   async acquire() {
-    while (this.#acquired >= this.#limit) {
+    while (this.#acquired >= this.#capacity) {
       if (!this.#wait) {
         this.#wait = Promise.withResolvers<void>();
       }

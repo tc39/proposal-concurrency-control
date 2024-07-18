@@ -1,11 +1,11 @@
 JavaScript Concurrency Control Proposal
 =======================================
 
-Stage: 0
+**Stage:** 0
 
-Champions: Michael Ficarra, Luca Casonato
+**Champions:** Michael Ficarra, Luca Casonato
 
-Authors: Michael Ficarra, Luca Casonato, Kevin Gibbons
+**Authors:** Michael Ficarra, Luca Casonato, Kevin Gibbons
 
 This proposal aims to provide a mechanism for describing a desired amount of concurrency and a coordination mechanism to achieve it. This could be for limiting concurrent access to a shared resource or for setting a target concurrency for an otherwise unbounded workload.
 
@@ -75,6 +75,7 @@ Similarly, `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>` 
   - takes an `acquire: () => Promise<GovernorToken>` function
   - also takes a `tryAcquire` function?
   - easy enough to live without it
+- alternative name: Regulator?
 
 ### Semaphore
 
@@ -90,6 +91,7 @@ Semaphore is a [counting semaphore](https://en.wikipedia.org/wiki/Semaphore_%28p
   - `removeIdleListener(cb: () => void): void`
   - callback interface or EventTarget?
 - are there concerns about sharing Semaphores across Agents?
+- alternative name: CountingGovernor? CountingRegulator?
 
 ### AsyncIterator.prototype integration
 

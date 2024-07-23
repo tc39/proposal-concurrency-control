@@ -11,6 +11,8 @@ This proposal aims to provide a mechanism for describing a desired amount of con
 
 A major motivator for this proposal is the concurrency support in the [async iterator helpers proposal](https://github.com/tc39/proposal-async-iterator-helpers). While that proposal has gone to great lengths to allow for concurrent iteration of its produced async iterators (such as through `map` and `filter`), it does not provide any way to consume async iterators concurrently (such as through `some` or `forEach`). Additionally, there is no mechanism provided by that proposal for generically limiting concurrent iteration of async iterators. This propsal attempts to address those deferred needs.
 
+The concurrency control mechanism proposed here is also motivated by many other use cases outside of async iteration. For example, an application may want to limit the concurrency of a certain function being invoked, or limit concurrent file reads, writes, or network requests. This proposal aims to provide a generic mechanism for controlling concurrency in JavaScript that can be used in a wide variety of use cases.
+
 ## Proposal
 
 This proposal consists of 3 major components: a Governor interface, the Semaphore class, and the AsyncIterator.prototype integration.
@@ -138,3 +140,17 @@ Because Semaphore will be an extremely commonly-used Governor, anywhere a Govern
   - `limit(limit: Governor | integer)`
   - a concurrency param (`Governor | integer`) added to all consuming methods
 
+
+## FAQ
+
+### Why the generic Governor interface?
+
+While a semaphore is a common concurrency control mechanism, there are many other ways to control concurrency. Some examples of these:
+
+- A governor that allows for a burst of activity before enforcing a limit (e.g. a semaphore that allows for 10 concurrent operations, but allows for 20 concurrent operations for the first 5 seconds).
+- A distributed governor that enforces a concurrency limit across multiple machines using a distributed lock or consensus algorithm.
+- A governor that enforces a concurrency limit based on the current load of the system (e.g. a semaphore that allows for 10 concurrent operations, but allows for 20 concurrent operations if the system is under 50% load).
+
+Because of this variety of use cases, it is important to give developers the flexibility to use their own concurrency control mechanisms with built in JavaScript APIs.
+
+The `Semaphore` class provides a simple and common concurrency control mechanism that can be used in many cases. It is expected that many developers will use `Semaphore` for their concurrency control needs. However, because APIs don't explicitly take a `Semaphore` instance, but any object that implements the `Governor` interface, developers can use their own concurrency control mechanisms if they need to.

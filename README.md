@@ -11,7 +11,7 @@ This proposal aims to provide a mechanism for describing a desired amount of con
 
 A major motivator for this proposal is the concurrency support in the [async iterator helpers proposal](https://github.com/tc39/proposal-async-iterator-helpers). While that proposal has gone to great lengths to allow for concurrent iteration of its produced async iterators (such as through `map` and `filter`), it does not provide any way to consume async iterators concurrently (such as through `some` or `forEach`). Additionally, there is no mechanism provided by that proposal for generically limiting concurrent iteration of async iterators. This propsal attempts to address those deferred needs.
 
-The concurrency control mechanism proposed here is also motivated by many other use cases outside of async iteration. For example, an application may want to limit it's concurrency of a certain function being invoked, or limit concurrent file reads, writes, or network requests. This proposal aims to provide a generic mechanism for controlling concurrency in JavaScript that can be used in a wide variety of use cases.
+The concurrency control mechanism proposed here is also motivated by many other use cases outside of async iteration. For example, an application may want to limit the concurrency of a certain function being invoked, or limit concurrent file reads, writes, or network requests. This proposal aims to provide a generic mechanism for controlling concurrency in JavaScript that can be used in a wide variety of use cases.
 
 ## Proposal
 

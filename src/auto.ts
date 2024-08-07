@@ -1,5 +1,5 @@
 
-import { Governor, Semaphore } from "./index.js";
+import { Governor, CountingGovernor } from "./index.js";
 
 Object.defineProperty(globalThis, "Governor", {
   configurable: true,
@@ -8,9 +8,9 @@ Object.defineProperty(globalThis, "Governor", {
   value: Governor,
 });
 
-Object.defineProperty(globalThis, "Semaphore", {
+Object.defineProperty(globalThis, "CountingGovernor", {
   configurable: true,
   writable: true,
   enumerable: false,
-  value: Semaphore,
+  value: CountingGovernor,
 });

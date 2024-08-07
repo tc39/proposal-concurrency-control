@@ -15,7 +15,7 @@ The concurrency control mechanism proposed here is also motivated by many other 
 
 ## Proposal
 
-This proposal consists of 3 major components: a Governor interface, the Semaphore class, and the AsyncIterator.prototype integration.
+This proposal consists of 3 major components: a Governor interface, the CountingGovernor class, and the AsyncIterator.prototype integration.
 
 ### Governor
 
@@ -79,20 +79,20 @@ Similarly, `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>` 
   - easy enough to live without it
 - alternative name: Regulator?
 
-### Semaphore
+### CountingGovernor
 
 This proposal subsumes Luca's [Semaphore proposal](https://github.com/lucacasonato/proposal-semaphore).
 
-Semaphore is a [counting semaphore](https://en.wikipedia.org/wiki/Semaphore_%28programming%29) that implements the Governor interface and extends Governor. It can be given a non-negative integral Number *capacity* and it is responsible for ensuring that there are no more than that number of active GovernorTokens simultaneously.
+CountingGovernor is a [counting semaphore](https://en.wikipedia.org/wiki/Semaphore_%28programming%29) that implements the Governor interface and extends Governor. It can be given a non-negative integral Number *capacity* and it is responsible for ensuring that there are no more than that number of active GovernorTokens simultaneously.
 
 #### Open Questions
 
 - are idle listeners useful?
-  - triggered whenever the Semaphore hits "full" capacity (0 active GovernorTokens)
+  - triggered whenever the CountingGovernor hits "full" capacity (0 active GovernorTokens)
   - `addIdleListener(cb: () => void): void`
   - `removeIdleListener(cb: () => void): void`
   - callback interface or EventTarget?
-- are there concerns about sharing Semaphores across Agents?
+- are there concerns about sharing CountingGovernors across Agents?
 - alternative name: CountingGovernor? CountingRegulator?
 
 ### AsyncIterator.prototype integration
@@ -110,7 +110,7 @@ When not passed, these methods operate serially, as they do in the async iterato
 
 This proposal also adds a `limit(governor)` method (the dual of `governor.wrapIterator(iterator)`) that returns a concurrency-limited AsyncIterator.
 
-Because Semaphore will be an extremely commonly-used Governor, anywhere a Governor is accepted in any AsyncIterator.prototype method, a non-negative integral Number may be passed instead. It will be treated as if a Semaphore with that capacity was passed. Because of this, we are able to widen the first parameter of the `buffered` helper to accept a Governor in addition to the non-negative integral Number that it accepts as part of the async iterator helpers proposal.
+Because CountingGovernor will be an extremely commonly-used Governor, anywhere a Governor is accepted in any AsyncIterator.prototype method, a non-negative integral Number may be passed instead. It will be treated as if a CountingGovernor with that capacity was passed. Because of this, we are able to widen the first parameter of the `buffered` helper to accept a Governor in addition to the non-negative integral Number that it accepts as part of the async iterator helpers proposal.
 
 #### Open Questions
 
@@ -130,8 +130,8 @@ Because Semaphore will be an extremely commonly-used Governor, anywhere a Govern
     - `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>`
   - GovernorToken.prototype
     - `release(): void` === `[Symbol.dispose](): void`
-- Semaphores
-  - `Semaphore(capacity: number)` constructor
+- CountingGovernors
+  - `CountingGovernor(capacity: number)` constructor
   - extending Governor
   - implementing the Governor interface
   - shareable across threads
@@ -145,7 +145,7 @@ Because Semaphore will be an extremely commonly-used Governor, anywhere a Govern
 
 ### Why the generic Governor interface?
 
-While a semaphore is a common concurrency control mechanism, there are many other ways to control concurrency. Some examples of these:
+While a counting semaphore is a common concurrency control mechanism, there are many other ways to control concurrency. Some examples of these:
 
 - A governor that allows for a burst of activity before enforcing a limit (e.g. a semaphore that allows for 10 concurrent operations, but allows for 20 concurrent operations for the first 5 seconds).
 - A distributed governor that enforces a concurrency limit across multiple machines using a distributed lock or consensus algorithm.
@@ -153,4 +153,4 @@ While a semaphore is a common concurrency control mechanism, there are many othe
 
 Because of this variety of use cases, it is important to give developers the flexibility to use their own concurrency control mechanisms with built in JavaScript APIs.
 
-The `Semaphore` class provides a simple and common concurrency control mechanism that can be used in many cases. It is expected that many developers will use `Semaphore` for their concurrency control needs. However, because APIs don't explicitly take a `Semaphore` instance, but any object that implements the `Governor` interface, developers can use their own concurrency control mechanisms if they need to.
+The `CountingGovernor` class provides a simple and common concurrency control mechanism that can be used in many cases. It is expected that many developers will use `CountingGovernor` for their concurrency control needs. However, because APIs don't explicitly take a `CountingGovernor` instance, but any object that implements the `Governor` interface, developers can use their own concurrency control mechanisms if they need to.

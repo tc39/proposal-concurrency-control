@@ -1,7 +1,7 @@
 JavaScript Concurrency Control Proposal
 =======================================
 
-**Stage:** 0
+**Stage:** 1
 
 **Champions:** Michael Ficarra, Luca Casonato
 

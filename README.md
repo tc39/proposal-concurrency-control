@@ -13,6 +13,10 @@ A major motivator for this proposal is the concurrency support in the [async ite
 
 The concurrency control mechanism proposed here is also motivated by many other use cases outside of async iteration. For example, an application may want to limit the concurrency of a certain function being invoked, or limit concurrent file reads, writes, or network requests. This proposal aims to provide a generic mechanism for controlling concurrency in JavaScript that can be used in a wide variety of use cases.
 
+## Presentations to Committee
+
+- [July 2024: Stage 1](https://docs.google.com/presentation/d/1rLIzouj1zTr4KdjNrYMZt-FbvEGMPmVeJ8HjOtB6wOU)
+
 ## Proposal
 
 This proposal consists of 3 major components: a Governor interface, the Semaphore class, and the AsyncIterator.prototype integration.

@@ -1,6 +1,6 @@
 import { Governor } from "./governor.js";
 
-export class Semaphore extends Governor {
+export class CountingGovernor extends Governor {
   #capacity: number;
   #acquired: number = 0;
   #wait: PromiseWithResolvers<void> | null = null;

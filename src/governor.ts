@@ -18,11 +18,10 @@ export abstract class Governor {
   }
 
   wrapIterator<T>(iter: Iterator<T> | AsyncIterator<T>): AsyncIterator<T> {
-    const _this = this;
     return {
-      next: async function(n) {
-        return await _this.wrap(iter.next as Iterator<T>['next']).call(iter, n);
-      },
+      next: async (n) =>
+        await this.wrap(iter.next as Iterator<T>['next']).call(iter, n)
+      ,
       return: async () =>
         typeof iter.return === "function"
           ? iter.return()

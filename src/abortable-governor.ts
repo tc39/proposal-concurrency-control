@@ -54,4 +54,54 @@ export abstract class AbortableGovernor extends Governor {
       },
     };
   }
+
+  static any(...governors: AbortableGovernor[]): AbortableGovernor {
+    return new ComposedGovernorAny(governors);
+  }
+}
+
+class ComposedGovernorAny extends AbortableGovernor {
+  #governors;
+
+  constructor(governors: AbortableGovernor[]) {
+    super();
+    this.#governors = governors;
+  }
+
+  acquireAbortable() {
+    // Governor.any([]) should be infinitely acquire-able
+    if (this.#governors.length === 0) {
+      return {
+        abort: () => {},
+        token: Promise.resolve({
+          release: () => {},
+          [Symbol.dispose]: () => {},
+        }),
+      };
+    }
+    let settled = false;
+    let { promise, resolve, reject } = Promise.withResolvers<GovernorToken>();
+    let tokenPromises = this.#governors.map((g) => g.acquire());
+    // resolve with the first token we acquire, and insta-release all others
+    for (let p of tokenPromises) {
+      p.then((token) => {
+        if (!settled) {
+          settled = true;
+          resolve(token);
+        } else {
+          token.release();
+        }
+      });
+    }
+    // if all tokenPromises reject, we should reject with the AggregateError
+    Promise.any(tokenPromises).catch((e) => {
+      reject(e);
+    });
+    return promise;
+  }
+}
+
+export interface GovernorToken {
+  release(): void;
+  [Symbol.dispose](): void;
 }

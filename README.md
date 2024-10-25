@@ -74,6 +74,8 @@ Governor.prototype.wrap = fn => {
 ```
 
 Similarly, `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>` takes an Iterator or AsyncIterator and returns an AsyncIterator that yields the same values but limited in concurrency by this Governor.
+
+There are also static helpers for composing Governors: `Governor.any` and `Governor.all`. `any` takes 0 or more Governors and produces a Governor that, when acquired, attempts to acquire all of the passed Governors, returns the first GovernorToken it receives, and releases any other tokens it acquires. `all` takes 0 or more Governors and produces a Governor that attempts to acquire all of the passed Governors and only returns a GovernorToken once it has received a token for each of them.
 </details>
 
 #### Open Questions
@@ -88,6 +90,8 @@ Similarly, `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>` 
   - easy enough to live without it
 - alternative name: Regulator?
 - it's kind of annoying to implement both "release" and Symbol.dispose
+- should any/all take an iterable instead of varargs to match Promise.any/all?
+- should "any" be named "race" since it better matches Promise.race?
 
 ### CountingGovernor
 

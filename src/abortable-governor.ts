@@ -71,13 +71,7 @@ class ComposedGovernorAny extends AbortableGovernor {
   acquireAbortable() {
     // Governor.any([]) should be infinitely acquire-able
     if (this.#governors.length === 0) {
-      return {
-        abort: () => {},
-        token: Promise.resolve({
-          release: () => {},
-          [Symbol.dispose]: () => {},
-        }),
-      };
+      // throw here
     }
     let settled = false;
     let { promise, resolve, reject } = Promise.withResolvers<GovernorToken>();

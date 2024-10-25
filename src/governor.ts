@@ -75,18 +75,15 @@ class ComposedGovernorAny extends Governor {
   #governors;
 
   constructor(governors: Governor[]) {
+    // Governor.any([]) would be impossible to acquire
+    if (governors.length === 0) {
+      throw new RangeError("at least one governor must be provided");
+    }
     super();
     this.#governors = governors
   }
 
   acquire(): Promise<GovernorToken> {
-    // Governor.any([]) should be infinitely acquire-able
-    if (this.#governors.length === 0) {
-      return Promise.resolve({
-        release: () => {},
-        [Symbol.dispose]: () => {},
-      });
-    }
     let settled = false;
     let { promise, resolve, reject } = Promise.withResolvers<GovernorToken>();
     let tokenPromises = this.#governors.map(g => g.acquire());
@@ -101,7 +98,7 @@ class ComposedGovernorAny extends Governor {
         }
       });
     };
-    // if all tokenPromises reject, we should reject with the AggregateError
+    // if all tokenPromises reject, we should reject with an AggregateError
     Promise.any(tokenPromises).catch(e => {
       reject(e);
     });

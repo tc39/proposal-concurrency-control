@@ -1,5 +1,4 @@
-
-import { Governor, CountingGovernor } from "./index.js";
+import { CountingGovernor, Governor } from "./index.js";
 
 Object.defineProperty(globalThis, "Governor", {
   configurable: true,

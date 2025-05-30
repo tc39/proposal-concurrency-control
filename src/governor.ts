@@ -5,9 +5,11 @@ export abstract class Governor {
     return this.wrap(fn)();
   }
 
-  wrap<T, A extends unknown[], R>(fn: (this: T, ...args: A) => R): ((this: T, ...args: A) => Promise<Awaited<R>>) {
+  wrap<T, A extends unknown[], R>(
+    fn: (this: T, ...args: A) => R,
+  ): (this: T, ...args: A) => Promise<Awaited<R>> {
     const _this = this;
-    return async function(...args): Promise<Awaited<R>> {
+    return async function (...args): Promise<Awaited<R>> {
       const token = await _this.acquire();
       try {
         return await fn.apply(this, args);
@@ -20,13 +22,12 @@ export abstract class Governor {
   wrapIterator<T>(iter: Iterator<T> | AsyncIterator<T>): AsyncIterator<T> {
     return {
       next: async (n) =>
-        await this.wrap(iter.next as Iterator<T>['next']).call(iter, n)
-      ,
+        await this.wrap(iter.next as Iterator<T>["next"]).call(iter, n),
       return: async () =>
         typeof iter.return === "function"
           ? iter.return()
-          : { done: true, value: undefined }
-    }
+          : { done: true, value: undefined },
+    };
   }
 
   // wrapIterable<T>(iter: Iterable<T> | AsyncIterable<T>): AsyncIterable<T> {

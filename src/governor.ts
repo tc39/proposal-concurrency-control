@@ -32,6 +32,79 @@ export abstract class Governor {
 
   // wrapIterable<T>(iter: Iterable<T> | AsyncIterable<T>): AsyncIterable<T> {
   // }
+
+  static all(...governors: Governor[]): Governor {
+    return new ComposedGovernorAll(governors);
+  }
+
+  static any(...governors: Governor[]): Governor {
+    return new ComposedGovernorAny(governors);
+  }
+}
+
+class ComposedGovernorAll extends Governor {
+  #governors;
+
+  constructor(governors: Governor[]) {
+    super();
+    this.#governors = governors
+  }
+
+  async acquire(): Promise<GovernorToken> {
+    let tokens = await Promise.all(this.#governors.map(g => g.acquire()));
+    function dispose() {
+      let deferred = null;
+      for (let t of tokens) {
+        try {
+          t.release();
+        } catch (e) {
+          deferred ??= e;
+        }
+      };
+      if (deferred) {
+        throw deferred;
+      }
+    }
+    return {
+      release: dispose,
+      [Symbol.dispose]: dispose,
+    } as GovernorToken;
+  }
+}
+
+class ComposedGovernorAny extends Governor {
+  #governors;
+
+  constructor(governors: Governor[]) {
+    // Governor.any([]) would be impossible to acquire
+    if (governors.length === 0) {
+      throw new RangeError("at least one governor must be provided");
+    }
+    super();
+    this.#governors = governors
+  }
+
+  acquire(): Promise<GovernorToken> {
+    let settled = false;
+    let { promise, resolve, reject } = Promise.withResolvers<GovernorToken>();
+    let tokenPromises = this.#governors.map(g => g.acquire());
+    // resolve with the first token we acquire, and insta-release all others
+    for (let p of tokenPromises) {
+      p.then(token => {
+        if (!settled) {
+          settled = true;
+          resolve(token);
+        } else {
+          token.release();
+        }
+      });
+    };
+    // if all tokenPromises reject, we should reject with an AggregateError
+    Promise.any(tokenPromises).catch(e => {
+      reject(e);
+    });
+    return promise;
+  }
 }
 
 export interface GovernorToken {

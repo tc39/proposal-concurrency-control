@@ -29,9 +29,6 @@ export abstract class Governor {
           : { done: true, value: undefined },
     };
   }
-
-  // wrapIterable<T>(iter: Iterable<T> | AsyncIterable<T>): AsyncIterable<T> {
-  // }
 }
 
 export interface GovernorToken {

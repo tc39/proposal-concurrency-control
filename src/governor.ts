@@ -39,33 +39,60 @@ export abstract class Governor {
 
 class ComposedGovernorAll extends Governor {
   #governors;
-  #ongoingAcquire: Promise<void> | null = null;
+  #currentlyAcquiring: boolean = false;
+  #waitingToAcquireQueue: ((tokens: (GovernorToken | null)[]) => void)[];
 
   constructor(governors: Governor[]) {
     super();
     this.#governors = governors;
+    this.#waitingToAcquireQueue = [];
   }
 
   async acquire(): Promise<GovernorToken> {
-    while (this.#ongoingAcquire) {
-      await this.#ongoingAcquire;
+    let leftoverTokens: (GovernorToken | null)[] = [];
+    if (this.#currentlyAcquiring) {
+      const pwr = Promise.withResolvers<(GovernorToken | null)[]>();
+      this.#waitingToAcquireQueue.push(pwr.resolve);
+      leftoverTokens = await pwr.promise;
     }
-    const pwr = Promise.withResolvers<void>();
-    let tokens: GovernorToken[];
-    try {
-      this.#ongoingAcquire = pwr.promise;
-      // todo: when any acquire fails, we should release all already acquired tokens / cancel acquisitions
-      tokens = await Promise.all(this.#governors.map((g) => g.acquire()));
-    } finally {
-      this.#ongoingAcquire = null;
-      pwr.resolve();
+    this.#currentlyAcquiring = true;
+    const promises = this.#governors.map((g, i) => {
+      if (leftoverTokens[i]) {
+        return Promise.resolve(leftoverTokens[i]);
+      } else {
+        return g.acquire();
+      }
+    });
+    const results = await Promise.allSettled(promises);
+    this.#currentlyAcquiring = false;
+    const firstRejection = results.find((r) => r.status === "rejected");
+    const tokens: (GovernorToken | null)[] = results.map((r) =>
+      r.status === "fulfilled" ? r.value : null
+    );
+    if (firstRejection) {
+      const nextAcquire = this.#waitingToAcquireQueue.shift();
+      if (nextAcquire) {
+        nextAcquire(tokens);
+      } else {
+        for (const token of tokens) {
+          if (token) {
+            try {
+              token.release();
+            } catch {
+              // Ignore errors during release
+            }
+          }
+        }
+      }
+      throw firstRejection.reason;
     }
+
     function dispose() {
       let deferred;
       let didError = false;
       for (let t of tokens) {
         try {
-          t.release();
+          t!.release();
         } catch (e) {
           if (!didError) {
             deferred = e;

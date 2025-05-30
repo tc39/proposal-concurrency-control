@@ -20,7 +20,7 @@ The concurrency control mechanism proposed here is also motivated by many other 
 
 ## Proposal
 
-This proposal consists of 3 major components: a Governor interface, the CountingGovernor class, and the AsyncIterator.prototype integration.
+This proposal consists of 3 major components: the Governor and AbortableGovernor interfaces, the CountingGovernor class, and the AsyncIterator.prototype integration.
 
 ### Governor
 
@@ -28,16 +28,20 @@ The Governor interface is used for gaining access to a limited resource and late
 
 There is only a single method required by the Governor interface: `acquire`, returning a Promise that eventually resolves with a `GovernorToken`. A `GovernorToken` has a `release` method to indicate that the resource is no longer needed. The `GovernorToken` can also be automatically disposed using `using` syntax from the [Explicit Resource Management proposal](https://github.com/tc39/proposal-explicit-resource-management).
 
+The acquision of some resources is abortable. For these cases an AbortableGovernor interface is provided. This interface has a `acquireAbortable` method in addition to the `acquire` method from the Governor interface. `acquireAbortable` returns both an abort callback and a promise for a `GovernorToken`. Calling the `abort` callback requests the AbortableGovernor to abort acquisition and reject the promise for the `GovernorToken`. Calling `abort` may not do anything, depending on if the governed resource has already been acquired (even if this is not visible to the caller yet).
+
 A Governor is meant to control access to resources among mutually trustworthy parties. For adversarial scenarios, a [Capability](https://gist.github.com/michaelficarra/415941f94ed2249b5322d077aeaa6f96) should be used instead.
 
 The Governor name is taken from [the speed-limiting device in motor vehicles](https://en.wikipedia.org/wiki/Governor_%28device%29).
 
 <details>
 <summary>
-There is also a Governor constructor with helpers on its prototype.
+There is also a Governor and AbortableGovernor constructor with helper.
 </summary>
 
-The constructor unconditionally throws when it is the `new.target`. To make the helpers available, a concrete Governor can be implemented as follows:
+AbortableGovernor extends Governor.
+
+The Governor constructor unconditionally throws when it is the `new.target`. To make the helpers available, a concrete Governor can be implemented as follows:
 
 ```js
 const someGovernor = {
@@ -74,7 +78,7 @@ Similarly, `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>` 
 
 #### Open Questions
 
-- should the protocol be Symbol-based?
+- should the acquire protocol be Symbol-based?
 - maybe a sync/throwing acquire?
   - `tryAcquire(): GovernorToken`
   - or maybe not throwing? `tryAcquire(): GovernorToken | null`
@@ -83,6 +87,7 @@ Similarly, `wrapIterator(it: Iterator<T> | AsyncIterator<T>): AsyncIterator<T>` 
   - also takes a `tryAcquire` function?
   - easy enough to live without it
 - alternative name: Regulator?
+- it's kind of annoying to implement both "release" and Symbol.dispose
 
 ### CountingGovernor
 

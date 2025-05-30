@@ -1,6 +1,6 @@
-import { Governor } from "./governor.js";
+import { AbortableGovernor } from "./abortable-governor.js";
 
-export class CountingGovernor extends Governor {
+export class CountingGovernor extends AbortableGovernor {
   #capacity: number;
   #acquired: number = 0;
   #wait: PromiseWithResolvers<void> | null = null;
@@ -18,12 +18,15 @@ export class CountingGovernor extends Governor {
     this.#capacity = capacity;
   }
 
-  async acquire() {
+  async #acquire(abortToken?: { isAborted: boolean }) {
     while (this.#acquired >= this.#capacity) {
       if (!this.#wait) {
         this.#wait = Promise.withResolvers<void>();
       }
       await this.#wait.promise;
+      if (abortToken?.isAborted) {
+        throw new ReferenceError("Acquire was aborted");
+      }
     }
     ++this.#acquired;
 
@@ -47,6 +50,23 @@ export class CountingGovernor extends Governor {
       release: dispose,
       [Symbol.dispose]: dispose,
     };
+  }
+
+  override async acquire() {
+    return this.#acquire();
+  }
+
+  override acquireAbortable() {
+    const abortToken = { isAborted: false };
+    const abort = () => {
+      abortToken.isAborted = true;
+      if (this.#wait) {
+        this.#wait.resolve();
+        this.#wait = null;
+      }
+    };
+    const token = this.#acquire(abortToken);
+    return { token, abort };
   }
 
   addIdleListener(cb: () => void) {

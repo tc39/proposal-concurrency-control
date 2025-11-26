@@ -15,6 +15,7 @@ The concurrency control mechanism proposed here is also motivated by many other 
 
 ## Presentations to Committee
 
+- [November 2025: Stage 1 update](https://docs.google.com/presentation/d/1WoEqtVKEJgIhyTbOO2aWbNKLCFNPXHMb0ZW3gMFpyvU)
 - [October 2024 presentation to TC39-TG5](https://docs.google.com/presentation/d/1Pf0s8XXVCxlERmJU_YZY6YwEULXDS_HaBH3zuMUyrPo)
 - [July 2024: Stage 1](https://docs.google.com/presentation/d/1rLIzouj1zTr4KdjNrYMZt-FbvEGMPmVeJ8HjOtB6wOU)
 
